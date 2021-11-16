@@ -152,8 +152,8 @@ homicide_df %>%
 ## Problem 2
 
 ```{r}
-tibble(
-  files = files("./data/zip_data/"))
+#tibble(
+  #files = files("./data/zip_data/"))
 ```
 
 
