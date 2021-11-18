@@ -25,6 +25,17 @@ scale_fill_discrete = scale_fill_viridis_d
 
 ## Problem 1
 
+For this problem we are intested in data gathered and made publuc by _The Washington Post_ on homicides in 50 large U.S. cities. The code chunk below imports and cleans the data.
+
+victim_age: char because of "Unknown"
+str_c (): join multiple strings into a single string — str_c • string
+
+To summarize within cities to obtain the total number of homicides and the number of unsolved homicides : create a new variable "resolution", map Closed without arrest" and "Open/No arrest" with "unsolved" in resolution and "Closed by arrest" with "solved" using case_when()
+
+case_when(): vectorise multiple if_else() statements.
+
+count the city_state and found a data entry issue in TulsaAL, therefore we filter it out.
+
 ```{r}
 homicide_df = 
   read_csv("./data/homicide-data.csv", na = c("","Unknown")) %>% 
@@ -40,12 +51,19 @@ homicide_df =
   filter(city_state != "TulsaAL")
 ```
 
+
+prop.test can be used for testing the null that the proportions (probabilities of success) in several groups are the same, or that they equal certain given values.
+ex: prop.test(x = 5, n = 10) => 0.5
+
 Let's focus on Baltimore, MD.
 
 ```{r}
 baltimore_df = 
   homicide_df %>% 
   filter(city_state == "BaltimoreMD")
+
+#resolution == "unsolved" only gives true or false, but summing this up will convert them to 0 or 1 so that we can get the number of unsolved homicides.
+# n = total number of homicides in this time period
 
 baltimore_summary = 
   baltimore_df %>% 
@@ -60,9 +78,12 @@ baltimore_test =
     n = baltimore_summary %>% pull(n)
   )
 
+# use broom::tidy() to organize the output from prop.test into a dataframe so that we can actually use the outputs later.
+
 baltimore_test %>% 
   broom::tidy()
 ```
+
 
 Let's try to iterate across cities!
 First off, write a function and test it on few sample cities.
@@ -100,6 +121,11 @@ homicide_df %>%
 
 Now, lets iterate across all cities.
 
+1. nest uid:resolution and save them into new variable "data"
+2. Iteration: map everything in "data" and apply "prop_test_function" across "data", then create a new variable named "test_results"
+3. Iteration: map everything in "test_results" and apply "broom::tidy" across "data", then create a new variable named "tidy_results"
+4. unest the test_results to get the results
+
 ```{r}
 results_df = 
   homicide_df %>% 
@@ -111,8 +137,6 @@ results_df =
   select(city_state,tidy_results) %>% 
   unnest(tidy_results) %>% 
   select(city_state, estimate, starts_with("conf"))
-
-
 
 ```
 
@@ -151,11 +175,52 @@ homicide_df %>%
 
 ## Problem 2
 
+create a dataframe containing all file names
+
 ```{r}
-#tibble(
-  #files = files("./data/zip_data/"))
+file_list_df = 
+  tibble(
+    files = list.files("./data/zip_data/"))
+
 ```
 
+Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
+
+```{r}
+path = "./data/zip_data/"
+
+file_name_function = function(name) {
+  
+  file_name_df =
+    tibble(
+      file_name = paste("./data/zip_data/", name, sep = "")
+    )
+  
+  return(file_name_df)
+}
+
+new_name = file_name_function(file_list_df[[1]])
+
+file_df = 
+  map(new_name, read_csv)
+```
+
+
+```{r}
+file_list_df = 
+  tibble(
+    files = list.files("./data/zip_data/"))
+
+new_file_list_df = 
+  file_list_df %>% 
+  separate(files, into = c("control_or_exp","subject_id"), "_") %>% 
+  mutate(
+    subject_id = str_replace(subject_id, ".csv","")
+  )
+
+tidy_results = 
+  cbind(new_file_list_df,file_df)
+```
 
 
 ## Problem 3
