@@ -7,7 +7,6 @@ output: github_document
 
 ```{r}
 library(tidyverse)
-library(dplyr)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -182,13 +181,11 @@ create a dataframe containing all file names
 file_list_df = 
   tibble(
     files = list.files("./data/zip_data/"))
-
 ```
 
 Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
 
 ```{r}
-path = "./data/zip_data/"
 
 file_name_function = function(name) {
   
@@ -227,7 +224,8 @@ tidy_results =
     names_prefix = "file_name.week_",
     names_to = "week",
     values_to = "observation"
-  )
+  ) %>% 
+  filter(con_or_exp == "con")
   
 ```
 
@@ -248,31 +246,67 @@ tidy_results %>%
 
 ## Problem 3
 
+The code chunk below loads the iris dataset from the tidyverse package and introduces some missing values in each column. The purpose of this problem is to fill in those missing values.
+
 ```{r}
 library(tidyverse)
+library(dplyr)
 
 set.seed(10)
 
-iris_with_missing = iris %>% 
+iris_with_missing = 
+  iris %>% 
   map_df(~replace(.x, sample(1:150, 20), NA)) %>%
   mutate(Species = as.character(Species))
 ```
 
-
 write a function
+
+```{r}
+fill_in_character = 
+  iris_with_missing %>% 
+  mutate(
+    Species = replace_na(Species, "virginica")
+  )
+
+fill_in_numbers = 
+  iris_with_missing %>% 
+  mutate(
+    Sepal.Length = replace_na(Sepal.Length, mean(Sepal.Length, na.rm = TRUE))
+  )
+```
+
+
 
 ```{r}
 fill_in_missing = function(vector){
   
-  if(is.numeric){
+  if (is.numeric(vector)) {
+    
+    vector = replace_na(vector, mean(vector, na.rm = TRUE))
     
   }
   
-  if(is.character){
+  if (is.character(vector)) {
+    
+    vector = replace_na(vector, "virginica")
     
   }
   
+  return(tibble(vector))
 }
 
+character_testing = fill_in_missing(iris_with_missing$Species)
+number_testing = fill_in_missing(iris_with_missing$Petal.Width)
+```
+
+
+```{r}
+iris_with_missing %>% 
+  nest(data = Sepal.Length:Species) %>% 
+  mutate(
+    data = map(data, fill_in_missing)
+  ) %>% 
+  unnest(data)
 ```
 
