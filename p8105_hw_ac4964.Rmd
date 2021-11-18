@@ -7,6 +7,7 @@ output: github_document
 
 ```{r}
 library(tidyverse)
+library(dplyr)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -205,6 +206,7 @@ file_df =
   map(new_name, read_csv)
 ```
 
+Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
 
 ```{r}
 file_list_df = 
@@ -213,14 +215,35 @@ file_list_df =
 
 new_file_list_df = 
   file_list_df %>% 
-  separate(files, into = c("control_or_exp","subject_id"), "_") %>% 
+  separate(files, into = c("con_or_exp","subject_id"), "_") %>% 
   mutate(
     subject_id = str_replace(subject_id, ".csv","")
   )
 
 tidy_results = 
-  cbind(new_file_list_df,file_df)
+  cbind(new_file_list_df,file_df) %>% 
+  pivot_longer(
+    file_name.week_1:file_name.week_8,
+    names_prefix = "file_name.week_",
+    names_to = "week",
+    values_to = "observation"
+  )
+  
 ```
+
+Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
+
+```{r}
+tidy_results %>% 
+  ggplot(aes(x = as.numeric(week), y = observation, color = subject_id)) +
+  geom_line() +
+  labs(
+    title = "Observations On Each Subject Over Time",
+    x = "Week",
+    y = "Observations",
+  ) 
+```
+
 
 
 ## Problem 3
