@@ -224,8 +224,7 @@ tidy_results =
     names_prefix = "file_name.week_",
     names_to = "week",
     values_to = "observation"
-  ) %>% 
-  filter(con_or_exp == "con")
+  ) 
   
 ```
 
@@ -239,7 +238,8 @@ tidy_results %>%
     title = "Observations On Each Subject Over Time",
     x = "Week",
     y = "Observations",
-  ) 
+  ) +
+  facet_grid(. ~ con_or_exp)
 ```
 
 
@@ -295,24 +295,17 @@ fill_in_missing = function(vector){
     
   }
   
-  return(tibble(vector))
+  return(vector)
 }
-
-testing = map(iris_with_missing,fill_in_missing)
-character_testing = map(iris_with_missing$Species,fill_in_missing)
-number_testing = map(iris_with_missing$Petal.Width,fill_in_missing)
 
 ```
 
 Apply this function to the columns of iris_with_missing using a map statement.
 
-
 ```{r}
-iris_with_missing %>% 
-  nest(data = Sepal.Length:Species) %>% 
-  mutate(
-    new_data = map(data, fill_in_missing)
-  ) %>% 
-  unnest(new_data)
+new_iris_with_missing =
+  tibble(map_df(iris_with_missing, fill_in_missing))
+
+new_iris_with_missing
 ```
 
