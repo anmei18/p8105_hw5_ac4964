@@ -242,7 +242,7 @@ tidy_results %>%
   facet_grid(. ~ con_or_exp)
 ```
 
-
+The control arm seems to be constant throughout the 8 week period while there is a noticeable increase in the experimental arm from week 1 to week 8 for all subjects.
 
 ## Problem 3
 
