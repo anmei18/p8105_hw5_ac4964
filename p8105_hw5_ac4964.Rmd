@@ -250,7 +250,6 @@ The code chunk below loads the iris dataset from the tidyverse package and intro
 
 ```{r}
 library(tidyverse)
-library(dplyr)
 
 set.seed(10)
 
@@ -260,7 +259,6 @@ iris_with_missing =
   mutate(Species = as.character(Species))
 ```
 
-write a function
 
 ```{r}
 fill_in_character = 
@@ -276,7 +274,11 @@ fill_in_numbers =
   )
 ```
 
+There are two cases to address:
+For numeric variables, you should fill in missing values with the mean of non-missing values
+For character variables, you should fill in missing values with "virginica"
 
+Write a function that takes a vector as an argument; replaces missing values using the rules defined above; and returns the resulting vector.
 
 ```{r}
 fill_in_missing = function(vector){
@@ -296,17 +298,21 @@ fill_in_missing = function(vector){
   return(tibble(vector))
 }
 
-character_testing = fill_in_missing(iris_with_missing$Species)
-number_testing = fill_in_missing(iris_with_missing$Petal.Width)
+testing = map(iris_with_missing,fill_in_missing)
+character_testing = map(iris_with_missing$Species,fill_in_missing)
+number_testing = map(iris_with_missing$Petal.Width,fill_in_missing)
+
 ```
+
+Apply this function to the columns of iris_with_missing using a map statement.
 
 
 ```{r}
 iris_with_missing %>% 
   nest(data = Sepal.Length:Species) %>% 
   mutate(
-    data = map(data, fill_in_missing)
+    new_data = map(data, fill_in_missing)
   ) %>% 
-  unnest(data)
+  unnest(new_data)
 ```
 
